@@ -24,8 +24,36 @@
         required
         >
 
-        <button type=""submit>Add Expense</button>
+        <input
+        type="date"
+        name="expense_date"
+        required
+        >
+        <select name="category" required>
+            <option value=""> Select category</option>
+            <option value="Food">Food</option>
+            <option value="Travel">Travel</option>
+            <option value="Rent">Rent</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Other">Other</option>
+        </select>
 
+       
+
+        <button type=""submit>Add Expense</button>
+        
+
+    </form>
+
+    <form method="GET">
+        <select name="filter_category">
+            <option value="">All</option>
+            <option value="Food">Food</option>
+            <option value="Travel">Travel</option>
+            <option value="Rent">Rent</option>
+            <option value="Shopping">Shopping</option>
+        </select>
+        <button type=""submit>Filter</button>
     </form>
     <hr>
 
@@ -35,12 +63,16 @@
         <tr>
             <th>Description</th>
             <th>Amount</th>
+            <th>Category</th>
+            <th>Date</th>
             <th>Action</th>
         </tr>
         {% for expense in expenses %}
         <tr>
             <td>{{ expense[1] }}</td>
             <td>$ {{ "%.2f"|format(expense[2]) }}</td>
+            <td>{{ expense[3] }}</td>
+            <td>{{ expense[4] }}</td>
 
             <td>
                 <form method="POST" action="/delete/{{ expense[0] }}">
@@ -53,7 +85,7 @@
         {% endfor %}
 
     </table>
-    <h3> Total: $ {{ "%.2f"|format(total) }}</h3>
+    <h3> This Month: $ {{ "%.2f"|format(month_total) }}</h3>
     {% else %}
     <p>No expense added yet.</p>
     {% endif %}
