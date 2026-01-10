@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Expense Tracker</h1>
+    
+    <form method="POST">
+        <input 
+        type="text"
+        name="description"
+        placeholder="Expense description"
+        required
+        >
+
+        <input 
+        type="number"
+        name="amount"
+        placeholder="Amount"
+        step="0.01"
+        required
+        >
+
+        <button type=""submit>Add Expense</button>
+
+    </form>
+    <hr>
+
+    <h2>Expenses</h2>
+    {% if expenses %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Action</th>
+        </tr>
+        {% for expense in expenses %}
+        <tr>
+            <td>{{ expense[1] }}</td>
+            <td>$ {{ "%.2f"|format(expense[2]) }}</td>
+
+            <td>
+                <form method="POST" action="/delete/{{ expense[0] }}">
+                    <button type="submit">Delete</button>
+                </form>
+               
+
+            </td>
+        </tr>
+        {% endfor %}
+
+    </table>
+    <h3> Total: $ {{ "%.2f"|format(total) }}</h3>
+    {% else %}
+    <p>No expense added yet.</p>
+    {% endif %}
+
+    
+</body>
+</html>
