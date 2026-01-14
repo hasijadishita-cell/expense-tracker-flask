@@ -38,23 +38,43 @@ def index():
         cursor.execute("INSERT INTO EXPENSES (description, amount, category, expense_date) VALUES (?, ?, ?, ?)", (description, amount, category, expense_date))
         con.commit()
         return redirect("/")
-    
+    selected_month=request.args.get("month")
     filter_category=request.args.get("filter_category")
-    if filter_category and filter_category!="all":
+
+    
+    if selected_month!="all" and filter_category and filter_category!="all":
+        cursor.execute("SELECT * FROM expenses WHERE CATEGORY=? AND strftime('%Y-%m', expense_date)=? ORDER BY expense_date DESC", (filter_category, selected_month))
+
+    elif selected_month and selected_month!="all":
+        cursor.execute("SELECT * FROM expenses WHERE strftime('%Y-%m', expense_date)=? ORDER BY expense_date DESC", (selected_month,))
+    elif filter_category and filter_category!="all":
         cursor.execute("SELECT * FROM expenses WHERE CATEGORY=? ORDER BY expense_date DESC", (filter_category,))
     else:
         cursor.execute("SELECT * FROM expenses ORDER BY expense_date DESC")
     expenses=cursor.fetchall()
 
-    if filter_category and filter_category!="all":
-        cursor.execute("SELECT SUM(amount) FROM expenses WHERE CATEGORY=? AND strftime('%Y-%m', expense_date)= strftime('%Y-%m', 'now')", (filter_category,))
+    if filter_category!="all" and filter_category and selected_month!="all":
+        cursor.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m', expense_date)= ? AND category=?" , (selected_month, filter_category))
+    elif selected_month and selected_month!="all":
+        cursor.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m', expense_date)= ? " , (selected_month, ))
+
+    elif filter_category and filter_category!="all":
+        cursor.execute("SELECT SUM(amount) FROM expenses WHERE CATEGORY=?", (filter_category,))
     else:
-        cursor.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m', expense_date)= strftime('%Y-%m', 'now')")
+        cursor.execute("SELECT SUM(amount) FROM expenses")
 
     month_total=cursor.fetchone()[0]
     month_total=month_total if month_total else 0
+
+
+    if selected_month and selected_month!="all":
+        cursor.execute("SELECT category, SUM(amount) FROM expenses WHERE strftime('%Y-%m', expense_date)=? GROUP BY category", (selected_month,))
+    else:
+        cursor.execute("SELECT category, SUM(amount) FROM expenses GROUP BY category")
+    category_summary=cursor.fetchall()
+    category_summary=[(c, t or 0) for c, t in category_summary]
     con.close()
-    return render_template("index.html", expenses=expenses, month_total=month_total, filter_category=filter_category)
+    return render_template("index.html", expenses=expenses, month_total=month_total, filter_category=filter_category, selected_month=selected_month, category_summary=category_summary)
 
 @app.route("/delete/<int:expense_id>", methods=["POST"])
 
