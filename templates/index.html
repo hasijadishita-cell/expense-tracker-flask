@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
     <title>Document</title>
 </head>
 <body>
@@ -114,7 +116,38 @@
     <hr>
 
     <h3>Category Wise Summary</h3>
+    <div style="width:300px; height: 300px;">
+    <canvas 
+    id="categoryPie"
+     width="300" 
+     height="300"
+     data-labels='{{ category_summary | map(attribute=0) | list | tojson}}'
+     data-values='{{ category_summary | map(attribute=1) | list | tojson}}'></canvas>
+    </div>
     {% if category_summary %}
+
+    <script>
+        const canvas=document.getElementById("categoryPie");
+        const labels=JSON.parse(canvas.dataset.labels);
+        const data= JSON.parse(canvas.dataset.values)
+
+        new Chart(canvas, {
+            type: "pie",
+            data:{
+                labels:labels,
+                datasets:[{
+                    data:data,
+                    backgroundColor: [
+                        "#ff6384",
+                        "##36a2eb",
+                        "#ffcd56",
+                        "#4bc0c0",
+                        "#9966ff"
+                    ]
+                }]
+            }
+        })
+    </script>
     <ul>
         {% for category, total in category_summary %}
         <li>{{ category }}: ${{ "%.2f"|format(total) }}</li>
