@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, Response
 import sqlite3
+import csv, io
 
 
 app=Flask(__name__)
@@ -86,6 +87,34 @@ def delete_expense(expense_id):
     con.close()
     return redirect("/")
 
+
+@app.route("/export")
+def export_csv():
+    selected_month=request.args.get("month")
+    con=get_connection()
+    cursor=con.cursor()
+    if selected_month and selected_month!="all":
+        cursor.execute("SELECT * FROM expenses WHERE strftime('%Y-%m', expense_date)=?", (selected_month,))
+        filename=f"expenses_{selected_month}.csv"
+    else:
+        cursor.execute("SELECT * FROM expenses")
+        filename="expenses_all.csv"
+    rows=cursor.fetchall()
+    con.close()
+
+    output=io.StringIO()
+    writer=csv.writer(output)
+    writer.writerow(["Description", "Amount", "Category", "Date"])
+    for row in rows:
+        writer.writerow(row)
+
+    response=Response(
+        output.getvalue(),
+        mimetype="text/csv")
+    response.headers["Content-Disposition"]=f"attachment; filename={filename}"
+    return response
+
+  
 
 if __name__=="__main__":
     init_db()
