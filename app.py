@@ -26,23 +26,48 @@ CREATE TABLE IF NOT EXISTS expenses(
 
 @app.route("/", methods=["GET", "POST"])
 
+# MAIN LOOP
 def index():
-    con=get_connection()
-    cursor=con.cursor()
 
     if request.method=="POST":
-        description=request.form.get("description")
-        amount=float(request.form["amount"])
-        category=request.form.get("category")
-        expense_date=request.form["expense_date"]
-
-        cursor.execute("INSERT INTO EXPENSES (description, amount, category, expense_date) VALUES (?, ?, ?, ?)", (description, amount, category, expense_date))
-        con.commit()
+        add_expense(request.form.get("description"),
+        float(request.form["amount"]),
+        request.form.get("category"),
+        request.form["expense_date"])
         return redirect("/")
+        
+
     selected_month=request.args.get("month")
     filter_category=request.args.get("filter_category")
 
-    
+    expenses=get_expenses(selected_month, filter_category)
+    total=get_total(selected_month, filter_category)
+    category_summary=get_category_summary(selected_month, filter_category)
+
+    return render_template(
+        "index.html",
+        expenses=expenses,
+        total=total,
+        category_summary=category_summary,
+        selected_month=selected_month,
+        filter_category=filter_category
+    )
+
+# ADD EXPENSES
+def add_expense(description, amount, category, expense_date):
+    con=get_connection()
+    cursor=con.cursor()
+
+    cursor.execute("""
+                    INSERT INTO EXPENSES (description, amount, category, expense_date) VALUES (?, ?, ?, ?)"""
+                       , (description, amount, category, expense_date))
+    con.commit()
+    con.close()
+
+# GET ALL THE EXPENSES
+def get_expenses(selected_month, filter_category):
+    con=get_connection()
+    cursor=con.cursor()
     if selected_month!="all" and filter_category and filter_category!="all":
         cursor.execute("SELECT * FROM expenses WHERE CATEGORY=? AND strftime('%Y-%m', expense_date)=? ORDER BY expense_date DESC", (filter_category, selected_month))
 
@@ -53,7 +78,14 @@ def index():
     else:
         cursor.execute("SELECT * FROM expenses ORDER BY expense_date DESC")
     expenses=cursor.fetchall()
+    con.close()
+    return expenses
 
+
+# GET TOTAL EXPENSES
+def get_total(selected_month, filter_category):
+    con=get_connection()
+    cursor=con.cursor()
     if filter_category!="all" and filter_category and selected_month!="all":
         cursor.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m', expense_date)= ? AND category=?" , (selected_month, filter_category))
     elif selected_month and selected_month!="all":
@@ -66,8 +98,15 @@ def index():
 
     month_total=cursor.fetchone()[0]
     month_total=month_total if month_total else 0
+    con.close()
+    return month_total
 
 
+
+# GET CATEGORY SUMMARY 
+def get_category_summary(selected_month, filter_category):
+    con=get_connection()
+    cursor=con.cursor()
     if selected_month and selected_month!="all":
         cursor.execute("SELECT category, SUM(amount) FROM expenses WHERE strftime('%Y-%m', expense_date)=? GROUP BY category", (selected_month,))
     else:
@@ -75,10 +114,17 @@ def index():
     category_summary=cursor.fetchall()
     category_summary=[(c, t or 0) for c, t in category_summary]
     con.close()
-    return render_template("index.html", expenses=expenses, month_total=month_total, filter_category=filter_category, selected_month=selected_month, category_summary=category_summary)
+    return category_summary
+
+
+
+    
+    
 
 @app.route("/delete/<int:expense_id>", methods=["POST"])
 
+
+# DELETE EXPENSE
 def delete_expense(expense_id):
     con=get_connection()
     cursor=con.cursor()
@@ -88,7 +134,10 @@ def delete_expense(expense_id):
     return redirect("/")
 
 
+
 @app.route("/export")
+
+# EXPORTING AND DOWNLOADING THE EXPENSES
 def export_csv():
     selected_month=request.args.get("month")
     con=get_connection()
