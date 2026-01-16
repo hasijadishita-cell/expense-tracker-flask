@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, Response
+from flask import Flask, render_template, request, redirect, Response, flash
 import sqlite3
 import csv, io
 
@@ -108,6 +108,7 @@ def get_category_summary(selected_month, filter_category):
     con.close()
     return category_summary
 
+
 @app.route("/", methods=["GET", "POST"])
 # MAIN LOOP
 def index():
@@ -121,29 +122,55 @@ def index():
     """
 
     if request.method=="POST":
-        add_expense(request.form.get("description"),
-        float(request.form["amount"]),
-        request.form.get("category"),
-        request.form["expense_date"])
+        description=request.form.get("description"),
+        amount=float(request.form["amount"]),
+        category=request.form.get("category"),
+        expense_date=request.form["expense_date"]
+        is_valid, error=validate_expense(description, amount, category, expense_date)
+        if not is_valid:
+            flash(error)
+            return redirect("/")
+            
+        add_expense(description,amount, category, expense_date)
         return redirect("/")
-        
-
     selected_month=request.args.get("month")
     filter_category=request.args.get("filter_category")
 
     expenses=get_expenses(selected_month, filter_category)
     month_total=get_total(selected_month, filter_category)
     category_summary=get_category_summary(selected_month, filter_category)
-
     return render_template(
         "index.html",
         expenses=expenses,
         month_total=month_total,
         category_summary=category_summary,
         selected_month=selected_month,
-        filter_category=filter_category
-    )
+        filter_category=filter_category)
+        
 
+def validate_expense(description, amount, category, expense_date):
+    """
+    Validates expense from input before saving to database.
+    Returns (True, None) if valid, otherwise (false, error_message).
+    """
+    if not description:
+        return False, "Description is required."
+    
+    if not amount:
+        return False, "Amount is required."
+    
+    try:
+        amount=float(amount)
+        if amount<=0:
+            return False, "Amount must be grater than zero."
+    except ValueError:
+        return False, "Amount must be a number."
+    
+    if not category:
+        return False,"Category is required."
+    if not expense_date:
+        return False, "Date is required."
+    return True, None
     
     
 
