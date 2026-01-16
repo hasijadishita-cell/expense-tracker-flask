@@ -7,6 +7,9 @@ app=Flask(__name__)
 db_name="expenses.db"
 
 def get_connection():
+    """
+    Creates and returns a connection to the SQLite database.
+    """
     return sqlite3.connect(db_name)
 
 def init_db():
@@ -27,24 +30,6 @@ CREATE TABLE IF NOT EXISTS expenses(
 
 
 
-<<<<<<< HEAD
-    selected_month=request.args.get("month")
-    filter_category=request.args.get("filter_category")
-
-    expenses=get_expenses(selected_month, filter_category)
-    month_total=get_total(selected_month, filter_category)
-    category_summary=get_category_summary(selected_month, filter_category)
-
-    return render_template(
-        "index.html",
-        expenses=expenses,
-        month_total=month_total,
-        category_summary=category_summary,
-        selected_month=selected_month,
-        filter_category=filter_category
-    )
-=======
->>>>>>> f5c9c97 (Fixed the bugs)
 
 # ADD EXPENSES
 def add_expense(description, amount, category, expense_date):
@@ -59,6 +44,11 @@ def add_expense(description, amount, category, expense_date):
 
 # GET ALL THE EXPENSES
 def get_expenses(selected_month, filter_category):
+    """
+    Fetches expenses from th database based on the selected month and category filter.
+
+    Returns a list of expense records ordered by data.
+    """
     con=get_connection()
     cursor=con.cursor()
     if selected_month!="all" and filter_category and filter_category!="all":
@@ -77,6 +67,11 @@ def get_expenses(selected_month, filter_category):
 
 # GET TOTAL EXPENSES
 def get_total(selected_month, filter_category):
+    """
+    Calculates the total amount spent based on the selected month and category filter.
+
+    Returns the total expense as a number.
+    """
     con=get_connection()
     cursor=con.cursor()
     if filter_category!="all" and filter_category and selected_month!="all":
@@ -98,6 +93,10 @@ def get_total(selected_month, filter_category):
 
 # GET CATEGORY SUMMARY 
 def get_category_summary(selected_month, filter_category):
+    """
+    Calculates the total spending per category for the selected month and category filter.
+    Returns a list.
+    """
     con=get_connection()
     cursor=con.cursor()
     if selected_month and selected_month!="all":
@@ -112,6 +111,14 @@ def get_category_summary(selected_month, filter_category):
 @app.route("/", methods=["GET", "POST"])
 # MAIN LOOP
 def index():
+    """
+    Main application route.
+
+    Handles:
+    - Adding new expense (POST request)
+    - Filtering expenses by month and category (GET request)
+    - Displaying totals and category summary
+    """
 
     if request.method=="POST":
         add_expense(request.form.get("description"),
@@ -145,6 +152,9 @@ def index():
 
 # DELETE EXPENSE
 def delete_expense(expense_id):
+    """
+    Deletes a single expense from the database using its unique ID.
+    """
     con=get_connection()
     cursor=con.cursor()
     cursor.execute("DELETE FROM expenses WHERE id=?", (expense_id,))
@@ -158,6 +168,11 @@ def delete_expense(expense_id):
 
 # EXPORTING AND DOWNLOADING THE EXPENSES
 def export_csv():
+    """
+    Exports expense data for the selected month as a CSV file.
+
+    The CSV file is generated dynamically and downloaded through the browser.
+    """
     selected_month=request.args.get("month")
     con=get_connection()
     cursor=con.cursor()
