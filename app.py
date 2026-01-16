@@ -41,13 +41,13 @@ def index():
     filter_category=request.args.get("filter_category")
 
     expenses=get_expenses(selected_month, filter_category)
-    total=get_total(selected_month, filter_category)
+    month_total=get_total(selected_month, filter_category)
     category_summary=get_category_summary(selected_month, filter_category)
 
     return render_template(
         "index.html",
         expenses=expenses,
-        total=total,
+        month_total=month_total,
         category_summary=category_summary,
         selected_month=selected_month,
         filter_category=filter_category
