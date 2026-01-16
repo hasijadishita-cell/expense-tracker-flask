@@ -24,19 +24,10 @@ CREATE TABLE IF NOT EXISTS expenses(
     con.close()
 
 
-@app.route("/", methods=["GET", "POST"])
 
-# MAIN LOOP
-def index():
 
-    if request.method=="POST":
-        add_expense(request.form.get("description"),
-        float(request.form["amount"]),
-        request.form.get("category"),
-        request.form["expense_date"])
-        return redirect("/")
-        
 
+<<<<<<< HEAD
     selected_month=request.args.get("month")
     filter_category=request.args.get("filter_category")
 
@@ -52,6 +43,8 @@ def index():
         selected_month=selected_month,
         filter_category=filter_category
     )
+=======
+>>>>>>> f5c9c97 (Fixed the bugs)
 
 # ADD EXPENSES
 def add_expense(description, amount, category, expense_date):
@@ -116,7 +109,33 @@ def get_category_summary(selected_month, filter_category):
     con.close()
     return category_summary
 
+@app.route("/", methods=["GET", "POST"])
+# MAIN LOOP
+def index():
 
+    if request.method=="POST":
+        add_expense(request.form.get("description"),
+        float(request.form["amount"]),
+        request.form.get("category"),
+        request.form["expense_date"])
+        return redirect("/")
+        
+
+    selected_month=request.args.get("month")
+    filter_category=request.args.get("filter_category")
+
+    expenses=get_expenses(selected_month, filter_category)
+    month_total=get_total(selected_month, filter_category)
+    category_summary=get_category_summary(selected_month, filter_category)
+
+    return render_template(
+        "index.html",
+        expenses=expenses,
+        month_total=month_total,
+        category_summary=category_summary,
+        selected_month=selected_month,
+        filter_category=filter_category
+    )
 
     
     
