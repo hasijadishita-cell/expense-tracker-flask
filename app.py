@@ -7,9 +7,6 @@ app=Flask(__name__)
 
 
 
-
-
-
 @app.route("/", methods=["GET", "POST"])
 # MAIN LOOP
 def index():
@@ -23,9 +20,9 @@ def index():
     """
 
     if request.method=="POST":
-        description=request.form.get("description"),
-        amount=float(request.form["amount"]),
-        category=request.form.get("category"),
+        description=request.form.get("description")
+        amount=float(request.form["amount"])
+        category=request.form.get("category")
         expense_date=request.form["expense_date"]
         is_valid, error=validate_expense(description, amount, category, expense_date)
         if not is_valid:
@@ -86,9 +83,10 @@ def delete_expense_route(expense_id):
 
 @app.route("/export")
 
-def export_csv():
+def export_csv_route():
     selected_month=request.args.get("month")
-    rows, filename=get_expenses(selected_month)
+    
+    rows, filename=export_csv(selected_month)
     
 
     output=io.StringIO()
