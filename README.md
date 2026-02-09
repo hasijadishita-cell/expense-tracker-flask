@@ -77,8 +77,8 @@ pip install -r requirements.txt
 python app.py              # Windows
 python3 app.py             # Mac/Linux
 
-5. Open your browser and visit:
-http://127.0.0.1:5000
+5. Live demo:
+https://expense-tracker-flask-pb6g.onrender.com
 
 ---
 
